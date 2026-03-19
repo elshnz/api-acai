@@ -1,22 +1,27 @@
-import { Controller, Post, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { Body, Controller, Post, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { EmailService } from './email.service';
+import { ContactFormDto } from './dto/contact-form.dto';
+import { SendEmailDto } from './dto/send-email.dto';
 
 @ApiTags('Email')
 @Controller('acaiApi/email')
 export class EmailController {
-  constructor(private readonly emailService: EmailService) {}
+  constructor(private readonly emailService: EmailService) { }
 
   @Post('send')
   @ApiOperation({ summary: 'Send an email' })
   @ApiQuery({ name: 'toEmail', required: true, description: 'Comma-separated recipient emails' })
   @ApiQuery({ name: 'subject', required: true })
   @ApiQuery({ name: 'content', required: true, description: 'HTML email content' })
-  async sendEmail(
-    @Query('toEmail') toEmail: string,
-    @Query('subject') subject: string,
-    @Query('content') content: string,
-  ) {
-    return this.emailService.sendEmail(toEmail, subject, content);
+  async sendEmail(@Query() dto: SendEmailDto) {
+    return this.emailService.sendEmail(dto.toEmail, dto.subject, dto.content);
+  }
+
+  @Post('contact')
+  @ApiOperation({ summary: 'Send contact form to admin' })
+  @ApiBody({ type: ContactFormDto })
+  async sendContactForm(@Body() dto: ContactFormDto) {
+    return this.emailService.sendContactForm(dto.name, dto.email, dto.message);
   }
 }
