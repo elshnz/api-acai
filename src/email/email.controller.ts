@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { EmailService } from './email.service';
 import { ContactFormDto } from './dto/contact-form.dto';
 import { SendEmailDto } from './dto/send-email.dto';
+import { HireEmailDto } from './dto/hire-email.dto';
 
 @ApiTags('Email')
 @Controller('acaiApi/email')
@@ -22,6 +23,13 @@ export class EmailController {
   @ApiOperation({ summary: 'Send contact form to admin' })
   @ApiBody({ type: ContactFormDto })
   async sendContactForm(@Body() dto: ContactFormDto) {
-    return this.emailService.sendContactForm(dto.name, dto.email, dto.message);
+    return this.emailService.sendContactForm(dto.name, dto.email, dto.message, dto.recaptchaToken);
+  }
+
+  @Post('hire')
+  @ApiOperation({ summary: 'Send hire request to admin' })
+  @ApiBody({ type: HireEmailDto })
+  async sendHireEmail(@Body() dto: HireEmailDto) {
+    return this.emailService.sendHireEmail(dto);
   }
 }

@@ -16,4 +16,9 @@ export class ContactFormDto {
     @IsNotEmpty({ message: 'El mensaje es obligatorio' })
     @IsString({ message: 'El mensaje debe ser texto' })
     message: string;
+
+    @ApiProperty({ example: '03AGdBq26...' })
+    @IsNotEmpty({ message: 'El token de reCAPTCHA es obligatorio' })
+    @IsString()
+    recaptchaToken: string;
 }

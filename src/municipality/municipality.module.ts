@@ -10,4 +10,4 @@ import { Municipality } from './entities/municipality.entity';
   providers: [MunicipalityService],
   exports: [MunicipalityService],
 })
-export class MunicipalityModule {}
+export class MunicipalityModule { }
