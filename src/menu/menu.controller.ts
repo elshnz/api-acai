@@ -16,9 +16,9 @@ import { CreateMenuItemDto } from './dto/create-menu-item.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Menu')
-@Controller('api/rest/v1/menu')
+@Controller('menu')
 export class MenuController {
-  constructor(private readonly menuService: MenuService) {}
+  constructor(private readonly menuService: MenuService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get menu items with optional filters' })

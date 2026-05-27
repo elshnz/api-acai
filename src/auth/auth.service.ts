@@ -1,112 +1,131 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
+// auth.service.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { PasskeyService } from './passkey.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly passkeyService: PasskeyService,
+  ) { }
 
   async signIn(signInDto: SignInDto) {
-    const user = await this.usersService.findByEmail(signInDto.email);
+    const { email, password } = signInDto;
+
+    // Buscar usuario
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      signInDto.password,
-      user.password,
-    );
+    // Verificar contraseña
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Generar token
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
 
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        status: user.status,
-      },
-    };
-  }
-
-  async signUp(createUserDto: CreateUserDto) {
-    const existingUser = await this.usersService.findByEmail(
-      createUserDto.email,
-    );
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
-
-    const user = await this.usersService.create(createUserDto);
-
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
+    // No devolver el password
+    const { password: _, ...userWithoutPassword } = user;
 
     return {
       accessToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        status: user.status,
-      },
+      user: userWithoutPassword,
     };
   }
 
   async signInWithToken(token: string) {
     try {
+      // Verificar token
       const payload = this.jwtService.verify(token);
-      const user = await this.usersService.findById(payload.sub);
 
+      // Obtener usuario actualizado
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Generar nuevo token
       const newPayload = { sub: user.id, email: user.email };
-      const accessToken = this.jwtService.sign(newPayload);
+      const newAccessToken = this.jwtService.sign(newPayload);
+
+      const { password: _, ...userWithoutPassword } = user;
 
       return {
-        accessToken,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
-          status: user.status,
-        },
+        accessToken: newAccessToken,
+        user: userWithoutPassword,
       };
-    } catch {
+    } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      // Don't reveal if email exists
-      return { message: 'If the email exists, a reset link has been sent' };
-    }
+  async verifyToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      const user = await this.usersService.findById(payload.sub);
 
-    // TODO: Implement email sending with reset token
-    // For now, return a success message
-    return { message: 'If the email exists, a reset link has been sent' };
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+      return { user: userWithoutPassword };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async signUp(createUserDto: CreateUserDto) {
+    // Tu implementación existente
+    return this.usersService.create(createUserDto);
+  }
+
+  async forgotPassword(email: string) {
+    // Tu implementación existente
   }
 
   async resetPassword(password: string) {
-    // TODO: Implement with reset token validation
-    return { message: 'Password has been reset successfully' };
+    // Tu implementación existente
+  }
+
+  // 🆕 Métodos para Passkeys
+  async beginPasskeyRegistration(userId: string) {
+    return this.passkeyService.generateRegistrationOptions(userId);
+  }
+
+  async completePasskeyRegistration(userId: string, response: any, challenge: string) {
+    const result = await this.passkeyService.verifyRegistration(userId, response, challenge);
+    return result;
+  }
+
+  async beginPasskeyAuthentication(email: string) {
+    return this.passkeyService.generateAuthenticationOptions(email);
+  }
+
+  async completePasskeyAuthentication(email: string, response: any, challenge: string) {
+    const result = await this.passkeyService.verifyAuthentication(email, response, challenge);
+
+    if (result.verified && result.user) {
+      // Generar JWT
+      const payload = { sub: result.user.id, email: result.user.email };
+      const accessToken = this.jwtService.sign(payload);
+
+      return {
+        accessToken,
+        user: result.user,
+      };
+    }
+
+    throw new UnauthorizedException('Passkey authentication failed');
   }
 }

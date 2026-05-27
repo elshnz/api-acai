@@ -16,9 +16,9 @@ import { UpdateTypeServiceDto } from './dto/update-type-service.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Type Service')
-@Controller('acaiApi/typeService')
+@Controller('typeService')
 export class TypeServiceController {
-  constructor(private readonly typeServiceService: TypeServiceService) {}
+  constructor(private readonly typeServiceService: TypeServiceService) { }
 
   @Get('all')
   @ApiOperation({ summary: 'Get all type services' })

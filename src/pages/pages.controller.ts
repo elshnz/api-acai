@@ -17,9 +17,9 @@ import { UpdatePageDto } from './dto/update-page.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Pages')
-@Controller('api/rest/v1/pages')
+@Controller('pages')
 export class PagesController {
-  constructor(private readonly pagesService: PagesService) {}
+  constructor(private readonly pagesService: PagesService) { }
 
   @Get()
   @ApiOperation({ summary: 'List pages with optional filters' })

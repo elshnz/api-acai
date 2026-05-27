@@ -16,9 +16,9 @@ import { UpdateMaterialDto } from './dto/update-material.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Material')
-@Controller('api/rest/v1/material')
+@Controller('material')
 export class MaterialController {
-  constructor(private readonly materialService: MaterialService) {}
+  constructor(private readonly materialService: MaterialService) { }
 
   @Get()
   @ApiOperation({ summary: 'List all educational material' })

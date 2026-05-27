@@ -6,7 +6,7 @@ import { SendEmailDto } from './dto/send-email.dto';
 import { HireEmailDto } from './dto/hire-email.dto';
 
 @ApiTags('Email')
-@Controller('acaiApi/email')
+@Controller('email')
 export class EmailController {
   constructor(private readonly emailService: EmailService) { }
 

@@ -1,23 +1,20 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+// users/entities/user.entity.ts
+import { Entity, Column, OneToMany, CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { Passkey } from '../../auth/entities/passkey.entity';
+import { WebauthnChallenge } from '../../auth/entities/webauth-challenge.entity';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  name: string;
-
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
+  name: string;
+
+  @Column({ nullable: true })
   password: string;
 
   @Column({ nullable: true })
@@ -26,12 +23,14 @@ export class User {
   @Column({ default: 'active' })
   status: string;
 
-  @Column({ nullable: true })
-  company: string;
-
+  // ✅ Agregado: columna de fecha de creación
   @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  // Relaciones con passkeys (opcional, solo si quieres acceder desde el usuario)
+  @OneToMany(() => Passkey, passkey => passkey.user)
+  passkeys: Passkey[];
+
+  @OneToMany(() => WebauthnChallenge, challenge => challenge.user)
+  challenges: WebauthnChallenge[];
 }

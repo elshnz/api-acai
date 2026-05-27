@@ -1,29 +1,35 @@
+// auth/auth.module.ts
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
+import { AuthService } from './auth.service';
+import { PasskeyService } from './passkey.service';
 import { UsersModule } from '../users/users.module';
+import { Passkey } from './entities/passkey.entity';
+import { WebauthnChallenge } from './entities/webauth-challenge.entity';
 
 @Module({
   imports: [
     UsersModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule,
+    // Registrar las entidades de passkeys en TypeORM
+    TypeOrmModule.forFeature([Passkey, WebauthnChallenge]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'acai-secret'),
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION', '7d'),
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1h')
         },
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, PasskeyService],
+  exports: [AuthService, PasskeyService],
 })
-export class AuthModule {}
+export class AuthModule { }

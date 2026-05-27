@@ -10,9 +10,9 @@ import { ProspectService } from './prospect.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Prospect')
-@Controller('acaiApi/prospect')
+@Controller('prospect')
 export class ProspectController {
-  constructor(private readonly prospectService: ProspectService) {}
+  constructor(private readonly prospectService: ProspectService) { }
 
   @Post('add')
   @ApiOperation({ summary: 'Add a new prospect (from contact forms)' })

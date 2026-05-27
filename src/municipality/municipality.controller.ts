@@ -14,9 +14,9 @@ import { CreateMunicipalityDto } from './dto/create-municipality.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Municipality')
-@Controller('acaiApi/municipality')
+@Controller('municipality')
 export class MunicipalityController {
-  constructor(private readonly municipalityService: MunicipalityService) {}
+  constructor(private readonly municipalityService: MunicipalityService) { }
 
   @Get('all')
   @ApiOperation({ summary: 'Get all municipalities' })

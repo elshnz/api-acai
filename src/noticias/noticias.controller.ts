@@ -16,9 +16,9 @@ import { UpdateNoticiaDto } from './dto/update-noticia.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Noticias')
-@Controller('api/rest/v1/noticias')
+@Controller('noticias')
 export class NoticiasController {
-  constructor(private readonly noticiasService: NoticiasService) {}
+  constructor(private readonly noticiasService: NoticiasService) { }
 
   @Get()
   @ApiOperation({ summary: 'List all published news' })

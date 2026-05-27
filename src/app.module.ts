@@ -11,6 +11,7 @@ import { PagesModule } from './pages/pages.module';
 import { MenuModule } from './menu/menu.module';
 import { NoticiasModule } from './noticias/noticias.module';
 import { MaterialModule } from './material/material.module';
+import { LicitacionesModule } from './licitaciones/licitaciones.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { MaterialModule } from './material/material.module';
     MenuModule,
     NoticiasModule,
     MaterialModule,
+    LicitacionesModule,
   ],
 })
 export class AppModule {}
