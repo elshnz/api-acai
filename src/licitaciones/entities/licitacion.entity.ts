@@ -4,8 +4,9 @@ import { Documento } from './documento.entity';
 import { Grabacion } from './grabaciones.entity';
 
 export enum Categoria {
-    LICITACION = 'licitacion',
-    DIRECTIVA = 'directiva',
+    LICITACIONES = 'licitaciones',
+    ADJUDICACIONES_DIRECTAS = 'adjudicaciones_directas',
+    PROGRAMA_ANUAL_ADQUISICIONES = 'programa_anual_adquisiciones',
 }
 
 export enum TipoConcurrencia {
