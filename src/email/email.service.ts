@@ -64,8 +64,8 @@ export class EmailService {
     message: string,
     recaptchaToken: string,
   ): Promise<{ message: string }> {
-    console.log('Token recibido:', recaptchaToken);
-    console.log('Secret Key:', this.configService.get('RECAPTCHA_SECRET_KEY'));
+    // console.log('Token recibido:', recaptchaToken);
+    // console.log('Secret Key:', this.configService.get('RECAPTCHA_SECRET_KEY'));
 
     // ── Verificar reCAPTCHA ──────────────────────────────────────────
     const secretKey = this.configService.get<string>('RECAPTCHA_SECRET_KEY');
