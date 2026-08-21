@@ -15,18 +15,18 @@ export class EmailService {
     const host = this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com');
     const port = this.configService.get<number>('SMTP_PORT', 587);
     const user = this.configService.get<string>('SMTP_USER', '');
-    const pass = this.configService.get<string>('SMTP_PASS', '');
+    // const pass = this.configService.get<string>('SMTP_PASS', '');
 
     this.logger.log(`HOST: ${host}`);
     this.logger.log(`PORT: ${port}`);
     this.logger.log(`USER: ${user}`);
-    this.logger.log(`PASS: ${pass ? '***OK***' : 'VACÍO ❌'}`);
+    // this.logger.log(`PASS: ${pass ? '***OK***' : 'VACÍO ❌'}`);
 
     this.transporter = nodemailer.createTransport({
       host,
       port,
       secure: false,
-      auth: { user, pass },
+      auth: { user },
     });
   }
 
@@ -257,7 +257,7 @@ export class EmailService {
           <div class="label">Servicio de interés</div>
           <div class="value">${dto.service}</div>
         </div>` : ''}
-        
+
       ${dto.municipality ? `
         <div class="field">
           <div class="label">Municipio</div>

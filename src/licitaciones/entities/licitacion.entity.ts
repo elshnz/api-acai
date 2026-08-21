@@ -1,58 +1,66 @@
 // licitacion.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Documento } from './documento.entity';
-import { Grabacion } from './grabaciones.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { Documento } from "./documento.entity";
+import { Grabacion } from "./grabaciones.entity";
 
 export enum Categoria {
-    LICITACIONES = 'licitaciones',
-    ADJUDICACIONES_DIRECTAS = 'adjudicaciones_directas',
-    PROGRAMA_ANUAL_ADQUISICIONES = 'programa_anual_adquisiciones',
+  LICITACIONES = "licitaciones",
+  ADJUDICACIONES_DIRECTAS = "adjudicaciones_directas",
+  PROGRAMA_ANUAL_ADQUISICIONES = "programa_anual_adquisiciones",
 }
 
 export enum TipoConcurrencia {
-    CON_CONCURRENCIA = 'con_concurrencia',
-    SIN_CONCURRENCIA = 'sin_concurrencia',
-    ADJUDICACION_DIRECTA = 'adjudicacion_directa',
+  CON_CONCURRENCIA = "con_concurrencia",
+  SIN_CONCURRENCIA = "sin_concurrencia",
+  ADJUDICACION_DIRECTA = "adjudicacion_directa",
+  PROGRAMA_ANUAL = "programa_anual_adquisiciones",
 }
 
-@Entity('licitaciones')
+@Entity("licitaciones")
 export class Licitacion {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
-    @Column({ unique: true })
-    numero: string;
+  @Column({ unique: true })
+  numero: string;
 
-    @Column('text')
-    concepto: string;
+  @Column("text")
+  concepto: string;
 
-    @Column({ type: 'enum', enum: Categoria })
-    categoria: Categoria;
+  @Column({ type: "enum", enum: Categoria })
+  categoria: Categoria;
 
-    @Column({ type: 'enum', enum: TipoConcurrencia })
-    tipoConcurrencia: TipoConcurrencia;
+  @Column({ type: "enum", enum: TipoConcurrencia })
+  tipoConcurrencia: TipoConcurrencia;
 
-    @Column({ type: 'date', nullable: true })
-    fechaPublicacion: Date;
+  @Column({ type: "date", nullable: true })
+  fechaPublicacion: Date;
 
-    @Column({ type: 'date', nullable: true })
-    fechaJuntaAclaratoria: Date;
+  @Column({ type: "date", nullable: true })
+  fechaJuntaAclaratoria: Date;
 
-    @Column({ type: 'date', nullable: true })
-    fechaPresentacionApertura: Date;
+  @Column({ type: "date", nullable: true })
+  fechaPresentacionApertura: Date;
 
-    @Column({ type: 'date', nullable: true })
-    fechaFallo: Date;
+  @Column({ type: "date", nullable: true })
+  fechaFallo: Date;
 
-    @OneToMany(() => Documento, (doc) => doc.licitacion, { cascade: true })
-    documentos: Documento[];
+  @OneToMany(() => Documento, (doc) => doc.licitacion, { cascade: true })
+  documentos: Documento[];
 
-    @OneToMany(() => Grabacion, (grab) => grab.licitacion, { cascade: true })
-    grabaciones: Grabacion[];
+  @OneToMany(() => Grabacion, (grab) => grab.licitacion, { cascade: true })
+  grabaciones: Grabacion[];
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

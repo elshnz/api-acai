@@ -12,6 +12,8 @@ import { MenuModule } from './menu/menu.module';
 import { NoticiasModule } from './noticias/noticias.module';
 import { MaterialModule } from './material/material.module';
 import { LicitacionesModule } from './licitaciones/licitaciones.module';
+import { ProxyModule } from './proxy/proxy.module';
+
 
 @Module({
   imports: [
@@ -27,10 +29,10 @@ import { LicitacionesModule } from './licitaciones/licitaciones.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
+        host: configService.get<string>('DB_HOST', 'http://127.0.0.1:8082/'),
         port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres'),
+        username: configService.get<string>('DB_USERNAME', 'acai-user'),
+        password: configService.get<string>('DB_PASSWORD', 'qewqwrqwer'),
         database: configService.get<string>('DB_NAME', 'acai_db'),
         autoLoadEntities: true,
         synchronize: true,
@@ -49,6 +51,7 @@ import { LicitacionesModule } from './licitaciones/licitaciones.module';
     NoticiasModule,
     MaterialModule,
     LicitacionesModule,
+    ProxyModule,
   ],
 })
 export class AppModule {}
