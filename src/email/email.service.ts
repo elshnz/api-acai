@@ -15,18 +15,18 @@ export class EmailService {
     const host = this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com');
     const port = this.configService.get<number>('SMTP_PORT', 587);
     const user = this.configService.get<string>('SMTP_USER', '');
-    // const pass = this.configService.get<string>('SMTP_PASS', '');
+    const pass = this.configService.get<string>('SMTP_PASS', '');
 
-    this.logger.log(`HOST: ${host}`);
-    this.logger.log(`PORT: ${port}`);
-    this.logger.log(`USER: ${user}`);
+    // this.logger.log(`HOST: ${host}`);
+    // this.logger.log(`PORT: ${port}`);
+    // this.logger.log(`USER: ${user}`);
     // this.logger.log(`PASS: ${pass ? '***OK***' : 'VACÍO ❌'}`);
 
     this.transporter = nodemailer.createTransport({
       host,
       port,
       secure: false,
-      auth: { user },
+      auth: { user, pass },
     });
   }
 
@@ -37,7 +37,7 @@ export class EmailService {
     content: string,
   ): Promise<{ message: string }> {
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'elias.hernandez@acai.gob.mx');
+      const from = this.configService.get<string>('SMTP_FROM', 'gestion-comercial@jalisco.gob.mx');
 
       const info = await this.transporter.sendMail({
         from,
@@ -46,9 +46,9 @@ export class EmailService {
         html: content,
       });
 
-      this.logger.log(`Email sent to: ${toEmail}`);
-      this.logger.log(`Server response: ${info.response}`);
-      this.logger.log(`Message ID: ${info.messageId}`);
+      // this.logger.log(`Email sent to: ${toEmail}`);
+      // this.logger.log(`Server response: ${info.response}`);
+      // this.logger.log(`Message ID: ${info.messageId}`);
 
       return { message: 'Email sent successfully' };
     } catch (error) {
@@ -74,7 +74,7 @@ export class EmailService {
     const recaptchaRes = await fetch(verifyUrl, { method: 'POST' });
     const recaptchaData = await recaptchaRes.json();
 
-    this.logger.log(`reCAPTCHA score: ${recaptchaData.score}`);
+    // this.logger.log(`reCAPTCHA score: ${recaptchaData.score}`);
 
     if (!recaptchaData.success || recaptchaData.score < 0.5) {
       throw new Error('reCAPTCHA inválido o score muy bajo');
@@ -82,9 +82,9 @@ export class EmailService {
     // ────────────────────────────────────────────────────────────────
     const adminEmail = this.configService.get<string>('MAIL_ADMIN', 'elias.hernandez@acai.gob.mx');
 
-    this.logger.log(`SMTP_HOST: ${this.configService.get('SMTP_HOST')}`);
-    this.logger.log(`SMTP_USER: ${this.configService.get('SMTP_USER')}`);
-    this.logger.log(`Enviando a: ${adminEmail}`);
+    // this.logger.log(`SMTP_HOST: ${this.configService.get('SMTP_HOST')}`);
+    // this.logger.log(`SMTP_USER: ${this.configService.get('SMTP_USER')}`);
+    // this.logger.log(`Enviando a: ${adminEmail}`);
 
     const subject = `📩 Nuevo mensaje de contacto — ${name}`;
 
@@ -100,7 +100,7 @@ export class EmailService {
       <head>
         <meta charset="UTF-8"/>
         <style>
-          body { margin:0 10px; padding:0; background:#fafafa; font-weight: extrabold; font-family:Garet, Arial,sans-serif; }
+          body { margin:0 10px; padding:0; background:#fafafa; font-weight:bold; font-family:Garet, Arial,sans-serif; }
           .wrapper { max-width:600px; margin:40px auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.08); }
           .header { background:#7357C1; padding:28px 40px; text-align:center; }
           .header h1 { margin:0; color:#fff; font-size:22px; }
@@ -111,7 +111,8 @@ export class EmailService {
           .label { background:#F1F1F1; font-weight:bold; color:#374151; width:110px; }
           .value { background:#f5f5f5; }
           .divider { border-top:1px solid #e5e7eb; }
-          .btn { display:inline-block; margin-top:24px; padding:5px 28px; background:#7357C1; color:#fff!important; text-decoration:none; border-radius:50px; font-weight:bold; font-size:14px; hover: background:#583F9C; }
+          .btn { display:inline-block; margin-top:24px; padding:5px 28px; background:#7357C1; color:#fff!important;
+          text-decoration:none; border-radius:50px; font-weight:bold; font-size:14px; background:#583F9C;}
           .footer {text-align:center; font-size:12px; color:#9ca3af; display: flex; justify-content: center; align-items: center; }
         </style>
       </head>
