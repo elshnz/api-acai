@@ -140,9 +140,9 @@ export class EmailService {
             <a href="mailto:${email}" class="btn">Responder</a>
           </div>
           <div class="footer">
-          <img src="https://portal-jalisco.s3.amazonaws.com/jalisco/original_images/isologo_headerfoot.png" alt="" />
-          <img src="https://portal-jalisco.s3.amazonaws.com/jalisco/original_images/isologo_headerfoot.png" alt="" />
-          <img src="https://portal-jalisco.s3.amazonaws.com/jalisco/original_images/isologo_headerfoot.png" alt="" />
+          <img src="https://dev.acai.gob.mx/assets/images/email/logo-acai.png" alt="Logo acai" width="300">
+          <img src="https://dev.acai.gob.mx/assets/images/email/logo-jalisco.png" alt="Logo jalisco" width="300">
+          <img src="https://dev.acai.gob.mx/assets/images/email/logo-red-jalisco.png" alt="Logo red red jalisco" width="300">
           </div>
         </div>
       </body>
@@ -171,7 +171,7 @@ export class EmailService {
     let municipalityName = '';
     if (dto.municipality) {
       const municipio = await this.municipalityService.findOne(dto.municipality);
-      municipalityName = municipio.name; // 👈 nombre en lugar del id
+      municipalityName = municipio.name;
     }
 
     const adminEmail = this.configService.get<string>('MAIL_ADMIN', 'elias.hernandez@acai.gob.mx');
@@ -210,10 +210,7 @@ export class EmailService {
     .field .value.message { font-weight:400; white-space:pre-wrap; }
     .meta { font-size:12px; color:#9ca3af; margin-bottom:0px; }
     .btn { display:inline-block; margin-top:8px; padding:13px 28px; background:#7c3aed; color:#fff!important; text-decoration:none; border-radius:6px; font-weight:bold; font-size:14px; }
-    .footer { background:#f9fafb; padding:24px 40px; text-align:center; border-top:1px solid #e5e7eb; }
-    .footer-logos { display:flex; justify-content:center; align-items:center; gap:32px; }
-    .footer-logo { font-size:11px; color:#9ca3af; text-align:center; }
-    .footer-logo span { display:block; font-weight:bold; font-size:13px; color:#6b7280; }
+    .footer {text-align:center; font-size:12px; color:#9ca3af; display: flex; justify-content: center; align-items: center; }
   </style>
 </head>
 <body>
@@ -273,22 +270,10 @@ export class EmailService {
 
     <!-- Footer con logos -->
     <div class="footer">
-      <div class="footer-logos">
-        <div class="footer-logo">
-          <span>RED Jalisco</span>
-          Red Estatal Digital
-        </div>
-        <div class="footer-logo">
-          <span>Agencia de Conectividad</span>
-          acai.gob.mx
-        </div>
-        <div class="footer-logo">
-          <span>JALISCO</span>
-          Gobierno del Estado
-        </div>
-      </div>
+    <img src="https://dev.acai.gob.mx/assets/images/email/logo-acai.png" alt="Logo acai" width="300">
+    <img src="https://dev.acai.gob.mx/assets/images/email/logo-jalisco.png" alt="Logo jalisco" width="300">
+    <img src="https://dev.acai.gob.mx/assets/images/email/logo-red-jalisco.png" alt="Logo red red jalisco" width="300">
     </div>
-
   </div>
 </body>
 </html>

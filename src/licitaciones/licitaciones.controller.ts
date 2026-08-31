@@ -1,4 +1,3 @@
-// licitaciones.controller.ts
 import {
   Controller,
   Get,
@@ -92,6 +91,14 @@ export class LicitacionesController {
     @Body("tipo") tipo: string,
   ) {
     return this.service.addDocumento(id, file, nombre, tipo);
+  }
+
+  @Patch("documentos/:documentoId")
+  updateDocumentoNombre(
+    @Param("documentoId") documentoId: string,
+    @Body("nombre") nombre: string,
+  ) {
+    return this.service.updateDocumentoNombre(documentoId, nombre);
   }
 
   @Delete("documentos/:documentoId")

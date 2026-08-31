@@ -65,6 +65,18 @@ export class LicitacionesService {
     return this.licitacionRepo.save(licitacion);
   }
 
+  async updateDocumentoNombre(
+    documentoId: string,
+    nombre: string,
+  ): Promise<Documento> {
+    const documento = await this.documentoRepo.findOne({
+      where: { id: documentoId },
+    });
+    if (!documento) throw new NotFoundException("Documento no encontrado");
+    documento.nombre = nombre;
+    return this.documentoRepo.save(documento);
+  }
+
   // DELETE
   async remove(id: string): Promise<void> {
     const licitacion = await this.findOne(id);
