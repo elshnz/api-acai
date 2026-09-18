@@ -41,9 +41,7 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle("ACAI API")
-    .setDescription(
-      "API de la Agencia de Conectividad y Acceso a Internet del Estado de Jalisco",
-    )
+    .setDescription("API de la Agencia de Conectividad y Acceso a Internet del Estado de Jalisco")
     .setVersion("1.0")
     .addBearerAuth()
     .build();
