@@ -1,11 +1,14 @@
 // auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { SignInDto } from './dto/sign-in.dto';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
-import { PasskeyService } from './passkey.service';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import { SignInDto } from "./dto/sign-in.dto";
+import { CreateUserDto } from "../users/dto/create-user.dto";
+import * as bcrypt from "bcrypt";
+import { PasskeyService } from "./passkey.service";
+
+import { InvitationService } from "../users/invitation.service";
+import { ActivateAccountDto } from "./dto/activate-account.dto";
 
 @Injectable()
 export class AuthService {
@@ -13,7 +16,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly passkeyService: PasskeyService,
-  ) { }
+    private readonly invitationService: InvitationService,
+  ) {}
 
   async signIn(signInDto: SignInDto) {
     const { email, password } = signInDto;
@@ -21,13 +25,13 @@ export class AuthService {
     // Buscar usuario
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Verificar contraseña
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password ?? "");
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Generar token
@@ -51,7 +55,7 @@ export class AuthService {
       // Obtener usuario actualizado
       const user = await this.usersService.findById(payload.sub);
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException("User not found");
       }
 
       // Generar nuevo token
@@ -65,7 +69,7 @@ export class AuthService {
         user: userWithoutPassword,
       };
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException("Invalid or expired token");
     }
   }
 
@@ -75,13 +79,13 @@ export class AuthService {
       const user = await this.usersService.findById(payload.sub);
 
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException("User not found");
       }
 
       const { password: _, ...userWithoutPassword } = user;
       return { user: userWithoutPassword };
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException("Invalid token");
     }
   }
 
@@ -126,6 +130,24 @@ export class AuthService {
       };
     }
 
-    throw new UnauthorizedException('Passkey authentication failed');
+    throw new UnauthorizedException("Passkey authentication failed");
+  }
+
+  async activateAccount(dto: ActivateAccountDto) {
+    const { uid, token, newPassword } = dto;
+
+    // Valida token: existe, no usado, no expirado
+    const invitation = await this.invitationService.validateToken(uid, token);
+
+    // Hashear el nuevo password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar usuario: setea password y activa
+    await this.usersService.updatePasswordAndActivate(uid, hashedPassword);
+
+    // Marcar invitación como usada
+    await this.invitationService.markAsUsed(invitation);
+
+    return { message: "Cuenta activada correctamente" };
   }
 }

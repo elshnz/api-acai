@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HireEmailDto } from './dto/hire-email.dto';
-import * as nodemailer from 'nodemailer';
-import { MunicipalityService } from 'src/municipality/municipality.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { HireEmailDto } from "./dto/hire-email.dto";
+import * as nodemailer from "nodemailer";
+import { MunicipalityService } from "src/municipality/municipality.service";
 
 @Injectable()
 export class EmailService {
@@ -11,11 +11,12 @@ export class EmailService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly municipalityService: MunicipalityService) {
-    const host = this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com');
-    const port = this.configService.get<number>('SMTP_PORT', 587);
-    const user = this.configService.get<string>('SMTP_USER', '');
-    const pass = this.configService.get<string>('SMTP_PASS', '');
+    private readonly municipalityService: MunicipalityService,
+  ) {
+    const host = this.configService.get<string>("SMTP_HOST", "smtp.gmail.com");
+    const port = this.configService.get<number>("SMTP_PORT", 587);
+    const user = this.configService.get<string>("SMTP_USER", "");
+    const pass = this.configService.get<string>("SMTP_PASS", "");
 
     this.transporter = nodemailer.createTransport({
       host,
@@ -26,14 +27,9 @@ export class EmailService {
   }
 
   // ─── Método base ────────────────────────────────────────────────────────────
-  async sendEmail(
-    toEmail: string,
-    subject: string,
-    content: string,
-    ccEmails?: string | string[],
-  ): Promise<{ message: string }> {
+  async sendEmail(toEmail: string, subject: string, content: string, ccEmails?: string | string[]): Promise<{ message: string }> {
     try {
-      const from = this.configService.get<string>('SMTP_FROM', 'gestion-comercial@jalisco.gob.mx');
+      const from = this.configService.get<string>("SMTP_FROM", "gestion-comercial@jalisco.gob.mx");
 
       const info = await this.transporter.sendMail({
         from,
@@ -43,7 +39,7 @@ export class EmailService {
         html: content,
       });
 
-      return { message: 'Email sent successfully' };
+      return { message: "Email sent successfully" };
     } catch (error) {
       this.logger.error(`SMTP Error: ${error.message}`);
       throw error;
@@ -51,33 +47,27 @@ export class EmailService {
   }
 
   // ─── Formulario de contacto ──────────────────────────────────────────────────
-  async sendContactForm(
-    name: string,
-    email: string,
-    message: string,
-    recaptchaToken: string,
-  ): Promise<{ message: string }> {
-
+  async sendContactForm(name: string, email: string, message: string, recaptchaToken: string): Promise<{ message: string }> {
     // ── Verificar reCAPTCHA ──────────────────────────────────────────
-    const secretKey = this.configService.get<string>('RECAPTCHA_SECRET_KEY');
+    const secretKey = this.configService.get<string>("RECAPTCHA_SECRET_KEY");
     const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptchaToken}`;
 
-    const recaptchaRes = await fetch(verifyUrl, { method: 'POST' });
+    const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
     const recaptchaData = await recaptchaRes.json();
 
     if (!recaptchaData.success || recaptchaData.score < 0.5) {
-      throw new Error('reCAPTCHA inválido o score muy bajo');
+      throw new Error("reCAPTCHA inválido o score muy bajo");
     }
     // ────────────────────────────────────────────────────────────────
-    const adminEmail = this.configService.get<string>('MAIL_ADMIN', 'elias.hernandez@acai.gob.mx');
-    const ccEmails = this.configService.get<string>('MAIL_CC', 'leslie.angulo@acai.gob.mx');
+    const adminEmail = this.configService.get<string>("MAIL_ADMIN", "elias.hernandez@acai.gob.mx");
+    const ccEmails = this.configService.get<string>("MAIL_CC", "leslie.angulo@acai.gob.mx");
 
     const subject = `📩 Nuevo mensaje de contacto — ${name}`;
 
-    const receivedAt = new Date().toLocaleString('es-MX', {
-      dateStyle: 'long',
-      timeStyle: 'short',
-      timeZone: 'America/Mexico_City',
+    const receivedAt = new Date().toLocaleString("es-MX", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "America/Mexico_City",
     });
 
     const content = `
@@ -163,41 +153,39 @@ export class EmailService {
 
   // ─── Formulario de contratación ──────────────────────────────────────────────
   async sendHireEmail(dto: HireEmailDto): Promise<{ message: string }> {
-
     // ── Verificar reCAPTCHA ──────────────────────────────────────────
-    const secretKey = this.configService.get<string>('RECAPTCHA_SECRET_KEY');
+    const secretKey = this.configService.get<string>("RECAPTCHA_SECRET_KEY");
     const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${dto.token}`;
 
-    const recaptchaRes = await fetch(verifyUrl, { method: 'POST' });
+    const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
     const recaptchaData = await recaptchaRes.json();
 
     this.logger.log(`reCAPTCHA score: ${recaptchaData.score}`);
 
     if (!recaptchaData.success || recaptchaData.score < 0.5) {
-      throw new Error('reCAPTCHA inválido o score muy bajo');
+      throw new Error("reCAPTCHA inválido o score muy bajo");
     }
     // ────────────────────────────────────────────────────────────────
-    let municipalityName = '';
+    let municipalityName = "";
     if (dto.municipality) {
       const municipio = await this.municipalityService.findOne(dto.municipality);
       municipalityName = municipio.name;
     }
 
-    const adminEmail = this.configService.get<string>('MAIL_ADMIN', 'elias.hernandez@acai.gob.mx');
-    const ccEmails = this.configService.get<string>('MAIL_CC', 'leslie.angulo@acai.gob.mx');
+    const adminEmail = this.configService.get<string>("MAIL_ADMIN", "elias.hernandez@acai.gob.mx");
+    const ccEmails = this.configService.get<string>("MAIL_CC", "leslie.angulo@acai.gob.mx");
 
-
-    let subject = '';
+    let subject = "";
     if (dto.municipality) {
       subject = `📋 Solicitud de consulta`;
     } else {
       subject = `📋 Solicitud de contratación`;
     }
 
-    const receivedAt = new Date().toLocaleString('es-MX', {
-      dateStyle: 'long',
-      timeStyle: 'short',
-      timeZone: 'America/Mexico_City',
+    const receivedAt = new Date().toLocaleString("es-MX", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "America/Mexico_City",
     });
 
     const content = `
@@ -247,7 +235,7 @@ export class EmailService {
           </div>
           <!-- Subtítulo -->
           <div class="subheader">
-            ${dto.municipality ? '<h1>Agendar una consulta</h1>' : '<h1>Quiero contratar</h1>'}
+            ${dto.municipality ? "<h1>Agendar una consulta</h1>" : "<h1>Quiero contratar</h1>"}
           </div>
           <hr class="divider-line"/>
           <!-- Cuerpo -->
@@ -268,16 +256,24 @@ export class EmailService {
               <div class="label">Empresa</div>
               <div class="value">${dto.company}</div>
             </div>
-            ${dto.service ? `
+            ${
+              dto.service
+                ? `
               <div class="field">
                 <div class="label">Servicio de interés</div>
                 <div class="value">${dto.service}</div>
-              </div>` : ''}
-            ${dto.municipality ? `
+              </div>`
+                : ""
+            }
+            ${
+              dto.municipality
+                ? `
               <div class="field">
                 <div class="label">Municipio</div>
                 <div class="value">${municipalityName}</div>
-              </div>` : ''}
+              </div>`
+                : ""
+            }
             <div class="field">
               <div class="label">Mensaje</div>
               <div class="value message">${dto.message}</div>
@@ -303,5 +299,79 @@ export class EmailService {
     `;
 
     return this.sendEmail(adminEmail, subject, content, ccEmails);
+  }
+
+  //activate user
+  // // email.service.ts
+
+  // ─── Correo de activación de cuenta ──────────────────────────────────────────
+  async sendActivationEmail(toEmail: string, name: string, activationLink: string): Promise<{ message: string }> {
+    const subject = `🔑 Activa tu cuenta`;
+
+    const content = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8"/>
+        <style>
+          body { margin:0; padding:0; background:#f4f6f9; font-family:Arial,sans-serif; }
+          .wrapper { max-width:600px; margin:40px auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.08); border:1px solid #e5e7eb; }
+          .header { background:#7357C1; padding:28px 40px; text-align:center; }
+          .header h1 { margin:0; color:#fff; font-size:22px; }
+          .body { padding:36px 40px; color:#374151; font-size:15px; line-height:1.6; }
+          .body p { margin:0 0 16px; }
+          .btn-wrapper { text-align:center; margin:28px 0; }
+          .btn { display:inline-block; padding:13px 32px; background:#583F9C; color:#fff!important;
+                 text-decoration:none; border-radius:50px; font-weight:bold; font-size:14px; }
+          .note { font-size:12px; color:#9ca3af; margin-top:24px; }
+          .link-fallback { font-size:12px; color:#6b7280; word-break:break-all; margin-top:8px; }
+          .footer-table { width:100%; }
+          .footer-table td { padding:5px 20px 40px; text-align:center; }
+          .footer-table img { margin:0 15px; vertical-align:middle; }
+          @media only screen and (max-width: 480px) {
+            .footer-table td.logo-cell {
+              display: block !important;
+              width: 100% !important;
+              text-align: center !important;
+              padding: 10px 0 !important;
+            }
+            .footer-table img {
+              display: block !important;
+              margin: 10px auto !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="header"><h1>Activa tu cuenta</h1></div>
+          <div class="body">
+            <p>Hola <strong>${name}</strong>,</p>
+            <p>Se ha creado una cuenta para ti. Para comenzar a usarla, necesitas establecer tu contraseña.</p>
+            <div class="btn-wrapper">
+              <a href="${activationLink}" class="btn">Activar mi cuenta</a>
+            </div>
+            <p class="note">Este enlace expira en 48 horas. Si no reconoces esta solicitud, puedes ignorar este correo.</p>
+            <p class="link-fallback">Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>${activationLink}</p>
+          </div>
+          <table role="presentation" class="footer-table" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" class="logo-cell">
+                <img src="https://dev.acai.gob.mx/assets/images/email/logo-red-jalisco.png" alt="Logo red red jalisco">
+              </td>
+              <td align="center" class="logo-cell">
+                <img src="https://dev.acai.gob.mx/assets/images/email/logo-acai.png" alt="Logo acai">
+              </td>
+              <td align="center" class="logo-cell">
+                <img src="https://dev.acai.gob.mx/assets/images/email/logo-jalisco.png" alt="Logo jalisco">
+              </td>
+            </tr>
+          </table>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.sendEmail(toEmail, subject, content);
   }
 }

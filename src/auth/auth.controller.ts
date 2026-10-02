@@ -1,15 +1,16 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Res, Req, UnauthorizedException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
-import { Response, Request } from 'express';
-import { AuthService } from './auth.service';
-import { SignInDto } from './dto/sign-in.dto';
-import { SignInWithTokenDto } from './dto/sign-in-with-token.dto';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { Public } from '../common/decorators/public.decorator';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Post, Body, HttpCode, HttpStatus, Res, Req, UnauthorizedException } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from "@nestjs/swagger";
+import { Response, Request } from "express";
+import { AuthService } from "./auth.service";
+import { SignInDto } from "./dto/sign-in.dto";
+import { SignInWithTokenDto } from "./dto/sign-in-with-token.dto";
+import { CreateUserDto } from "../users/dto/create-user.dto";
+import { Public } from "../common/decorators/public.decorator";
+import { ConfigService } from "@nestjs/config";
+import { ActivateAccountDto } from "./dto/activate-account.dto";
 
-@ApiTags('Auth')
-@Controller('api/auth')
+@ApiTags("Auth")
+@Controller("api/auth")
 export class AuthController {
   private readonly isProduction: boolean;
 
@@ -17,7 +18,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {
-    this.isProduction = this.configService.get('NODE_ENV') === 'production';
+    this.isProduction = this.configService.get("NODE_ENV") === "production";
   }
 
   /**
@@ -25,18 +26,14 @@ export class AuthController {
    * Mantiene compatibilidad: si el cliente lo solicita, envía cookie
    */
   @Public()
-  @Post('sign-in')
+  @Post("sign-in")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Sign in with email and password' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async signIn(
-    @Body() signInDto: SignInDto,
-    @Res({ passthrough: true }) res: Response,
-    @Req() req: Request,
-  ) {
+  @ApiOperation({ summary: "Sign in with email and password" })
+  @ApiResponse({ status: 200, description: "Login successful" })
+  @ApiResponse({ status: 401, description: "Invalid credentials" })
+  async signIn(@Body() signInDto: SignInDto, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
     // Verificar si el cliente acepta cookies (Feature flag)
-    const acceptCookies = req.headers['x-accept-cookies'] === 'true';
+    const acceptCookies = req.headers["x-accept-cookies"] === "true";
 
     const result = await this.authService.signIn(signInDto);
 
@@ -47,7 +44,7 @@ export class AuthController {
       // No devolver el token en el body por seguridad
       return {
         user: result.user,
-        message: 'Login successful (cookie-based)',
+        message: "Login successful (cookie-based)",
       };
     }
 
@@ -59,16 +56,12 @@ export class AuthController {
    * 🆕 SIGN IN WITH TOKEN (mejorado con cookies)
    */
   @Public()
-  @Post('sign-in-with-token')
+  @Post("sign-in-with-token")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Authenticate using token (supports both header and cookie)' })
-  @ApiResponse({ status: 200, description: 'Authentication successful' })
-  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
-  async signInWithToken(
-    @Body() dto: SignInWithTokenDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  @ApiOperation({ summary: "Authenticate using token (supports both header and cookie)" })
+  @ApiResponse({ status: 200, description: "Authentication successful" })
+  @ApiResponse({ status: 401, description: "Invalid or expired token" })
+  async signInWithToken(@Body() dto: SignInWithTokenDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     // Prioridades: 1. Cookie, 2. Header, 3. Body
     let token: string | undefined;
 
@@ -77,7 +70,7 @@ export class AuthController {
       token = req.cookies.accessToken;
     }
     // Fallback al header (compatibilidad)
-    else if (req.headers.authorization?.startsWith('Bearer ')) {
+    else if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.substring(7);
     }
     // Fallback al body (compatibilidad)
@@ -86,7 +79,7 @@ export class AuthController {
     }
 
     if (!token) {
-      throw new UnauthorizedException('No token provided');
+      throw new UnauthorizedException("No token provided");
     }
 
     const result = await this.authService.signInWithToken(token);
@@ -98,7 +91,7 @@ export class AuthController {
     if (req.cookies?.accessToken) {
       return {
         user: result.user,
-        message: 'Session refreshed',
+        message: "Session refreshed",
       };
     }
 
@@ -109,34 +102,34 @@ export class AuthController {
   /**
    * 🆕 LOGOUT - Eliminar cookie
    */
-  @Post('logout')
+  @Post("logout")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Logout and clear session' })
-  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  @ApiOperation({ summary: "Logout and clear session" })
+  @ApiResponse({ status: 200, description: "Logged out successfully" })
   async logout(@Res({ passthrough: true }) res: Response) {
     this.clearAuthCookie(res);
-    return { message: 'Logged out successfully' };
+    return { message: "Logged out successfully" };
   }
 
   /**
    * 🆕 VERIFY - Verificar si el token actual es válido
    */
-  @Post('verify')
+  @Post("verify")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verify current session' })
-  @ApiResponse({ status: 200, description: 'Session is valid' })
-  @ApiResponse({ status: 401, description: 'Session is invalid' })
+  @ApiOperation({ summary: "Verify current session" })
+  @ApiResponse({ status: 200, description: "Session is valid" })
+  @ApiResponse({ status: 401, description: "Session is invalid" })
   async verify(@Req() req: Request) {
     let token: string | undefined;
 
     if (req.cookies?.accessToken) {
       token = req.cookies.accessToken;
-    } else if (req.headers.authorization?.startsWith('Bearer ')) {
+    } else if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.substring(7);
     }
 
     if (!token) {
-      throw new UnauthorizedException('No session found');
+      throw new UnauthorizedException("No session found");
     }
 
     const result = await this.authService.verifyToken(token);
@@ -146,12 +139,12 @@ export class AuthController {
   /**
    * 🆕 SET-UP PASSKEY - Iniciar registro de passkey
    */
-  @Post('passkey/register/begin')
-  @ApiOperation({ summary: 'Begin passkey registration' })
-  @ApiResponse({ status: 200, description: 'Registration options generated' })
+  @Post("passkey/register/begin")
+  @ApiOperation({ summary: "Begin passkey registration" })
+  @ApiResponse({ status: 200, description: "Registration options generated" })
   async beginPasskeyRegistration(@Req() req: Request) {
     const userId = req.user?.id; // Asumiendo que tienes el usuario en req.user
-    if (!userId) throw new UnauthorizedException('User not authenticated');
+    if (!userId) throw new UnauthorizedException("User not authenticated");
 
     return this.authService.beginPasskeyRegistration(userId);
   }
@@ -159,15 +152,12 @@ export class AuthController {
   /**
    * 🆕 COMPLETE PASSKEY - Completar registro de passkey
    */
-  @Post('passkey/register/complete')
-  @ApiOperation({ summary: 'Complete passkey registration' })
-  @ApiResponse({ status: 200, description: 'Passkey registered successfully' })
-  async completePasskeyRegistration(
-    @Req() req: Request,
-    @Body() body: { response: any; challenge: string },
-  ) {
+  @Post("passkey/register/complete")
+  @ApiOperation({ summary: "Complete passkey registration" })
+  @ApiResponse({ status: 200, description: "Passkey registered successfully" })
+  async completePasskeyRegistration(@Req() req: Request, @Body() body: { response: any; challenge: string }) {
     const userId = req.user?.id;
-    if (!userId) throw new UnauthorizedException('User not authenticated');
+    if (!userId) throw new UnauthorizedException("User not authenticated");
 
     return this.authService.completePasskeyRegistration(userId, body.response, body.challenge);
   }
@@ -176,9 +166,9 @@ export class AuthController {
    * 🆕 LOGIN WITH PASSKEY - Autenticar con passkey
    */
   @Public()
-  @Post('passkey/auth/begin')
-  @ApiOperation({ summary: 'Begin passkey authentication' })
-  @ApiResponse({ status: 200, description: 'Authentication options generated' })
+  @Post("passkey/auth/begin")
+  @ApiOperation({ summary: "Begin passkey authentication" })
+  @ApiResponse({ status: 200, description: "Authentication options generated" })
   async beginPasskeyAuth(@Body() body: { email: string }) {
     return this.authService.beginPasskeyAuthentication(body.email);
   }
@@ -187,18 +177,11 @@ export class AuthController {
    * 🆕 COMPLETE PASSKEY AUTH - Completar autenticación con passkey
    */
   @Public()
-  @Post('passkey/auth/complete')
-  @ApiOperation({ summary: 'Complete passkey authentication' })
-  @ApiResponse({ status: 200, description: 'Authentication successful' })
-  async completePasskeyAuth(
-    @Body() body: { email: string; response: any; challenge: string },
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const result = await this.authService.completePasskeyAuthentication(
-      body.email,
-      body.response,
-      body.challenge,
-    );
+  @Post("passkey/auth/complete")
+  @ApiOperation({ summary: "Complete passkey authentication" })
+  @ApiResponse({ status: 200, description: "Authentication successful" })
+  async completePasskeyAuth(@Body() body: { email: string; response: any; challenge: string }, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.completePasskeyAuthentication(body.email, body.response, body.challenge);
 
     // Setear cookie después de autenticación exitosa
     if (result.accessToken) {
@@ -209,46 +192,56 @@ export class AuthController {
   }
 
   // Métodos existentes (sin cambios)
-  @Post('sign-up')
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 409, description: 'Email already registered' })
+  @Post("sign-up")
+  @ApiOperation({ summary: "Register a new user" })
+  @ApiResponse({ status: 201, description: "User registered successfully" })
+  @ApiResponse({ status: 409, description: "Email already registered" })
   async signUp(@Body() createUserDto: CreateUserDto) {
     return this.authService.signUp(createUserDto);
   }
 
-  @Post('forgot-password')
+  @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Request password reset' })
-  async forgotPassword(@Body('email') email: string) {
+  @ApiOperation({ summary: "Request password reset" })
+  async forgotPassword(@Body("email") email: string) {
     return this.authService.forgotPassword(email);
   }
 
-  @Post('reset-password')
+  @Post("reset-password")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset password' })
-  async resetPassword(@Body('password') password: string) {
+  @ApiOperation({ summary: "Reset password" })
+  async resetPassword(@Body("password") password: string) {
     return this.authService.resetPassword(password);
+  }
+
+  @Public()
+  @Post("activate-account")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Activate account and set initial password using invitation token" })
+  @ApiResponse({ status: 200, description: "Account activated successfully" })
+  @ApiResponse({ status: 400, description: "Invalid or expired token" })
+  async activateAccount(@Body() dto: ActivateAccountDto) {
+    return this.authService.activateAccount(dto);
   }
 
   // 🔧 Métodos auxiliares privados
   private setAuthCookie(res: Response, token: string): void {
-    res.cookie('accessToken', token, {
-      httpOnly: true,      // 🔒 Inaccesible para JavaScript
+    res.cookie("accessToken", token, {
+      httpOnly: true, // 🔒 Inaccesible para JavaScript
       secure: this.isProduction, // Solo HTTPS en producción
-      sameSite: 'strict',   // 🔒 Previene CSRF
+      sameSite: "strict", // 🔒 Previene CSRF
       maxAge: 60 * 60 * 1000, // 1 hora
-      path: '/',
-      domain: this.configService.get('COOKIE_DOMAIN'), // Opcional
+      path: "/",
+      domain: this.configService.get("COOKIE_DOMAIN"), // Opcional
     });
   }
 
   private clearAuthCookie(res: Response): void {
-    res.clearCookie('accessToken', {
+    res.clearCookie("accessToken", {
       httpOnly: true,
       secure: this.isProduction,
-      sameSite: 'strict',
-      path: '/',
+      sameSite: "strict",
+      path: "/",
     });
   }
 }

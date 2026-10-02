@@ -1,8 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../users/users.service';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from "passport-jwt";
+import { Request } from "express";
+import { ConfigService } from "@nestjs/config";
+import { UsersService } from "../users/users.service";
+
+// Extrae el JWT desde la cookie httpOnly "accessToken"
+const cookieExtractor = (req: Request): string | null => {
+  return req?.cookies?.accessToken || null;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -11,9 +17,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET', 'acai-secret'),
+      secretOrKey: configService.get<string>("JWT_SECRET", "acai-secret"),
     });
   }
 
@@ -22,6 +28,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
-    return { id: user.id, email: user.email, name: user.name };
+    return { id: user.id, email: user.email, name: user.name, lastName: user.lastName, secondLastName: user.secondLastName, role: user.role };
   }
 }
