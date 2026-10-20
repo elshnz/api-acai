@@ -1,12 +1,5 @@
 // licitacion.entity.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 import { Documento } from "./documento.entity";
 import { Grabacion } from "./grabaciones.entity";
 
@@ -63,4 +56,7 @@ export class Licitacion {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: "deleted_at", type: "timestamp", nullable: true })
+  deletedAt?: Date | null;
 }
